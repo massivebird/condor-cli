@@ -4,6 +4,7 @@ use std::time::Duration;
 
 fn main() {
     let timestamp = chrono::Local::now();
+    println!("[{timestamp:?}] Make sure to set your volume unmuted and low!");
     println!("[{timestamp:?}] Let me do my thing");
 
     let alarm_on_loop = || loop {
