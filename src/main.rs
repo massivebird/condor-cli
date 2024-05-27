@@ -24,22 +24,22 @@ fn main() {
     let mut rng = rand::thread_rng();
 
     loop {
+        thread::sleep(Duration::from_secs(rng.gen_range(72..=248)));
+
         let html = String::from_utf8(Command::new("curl").arg("https://bannerweb.oci.emich.edu/pls/banner/bwckschd.p_disp_detail_sched?term_in=202510&crn_in=13153").output().unwrap().stdout).unwrap();
 
-        let re = regex::Regex::new(r"dddefault").unwrap();
+        let html_re = regex::Regex::new(r"dddefault").unwrap();
 
-        if !re.is_match(&html) {
+        if !html_re.is_match(&html) {
             my_print("Uh oh. We're not getting HTML anymore.");
             continue;
         }
 
-        let re = regex::Regex::new(r"dddefault.>[^30]{1,2}[0]{0,1}</td>").unwrap();
+        let availability_re = regex::Regex::new(r"dddefault.>[^30]{1,2}[0]{0,1}</td>").unwrap();
 
-        if re.is_match(&html) {
+        if availability_re.is_match(&html) {
             my_print("NONTHIRTY, NONZERO VALUE DETECTED!!!!");
             alarm_on_loop();
         }
-
-        thread::sleep(Duration::from_secs(rng.gen_range(72..=248)));
     }
 }
