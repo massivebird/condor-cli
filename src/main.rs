@@ -2,6 +2,8 @@ use std::process::{Command, Stdio};
 use std::thread;
 use std::time::Duration;
 
+use rand::Rng;
+
 fn main() {
     let my_print = |msg: &str| {
         let timestamp = chrono::Local::now();
@@ -18,6 +20,8 @@ fn main() {
             .unwrap();
         std::thread::sleep(std::time::Duration::from_secs(240));
     };
+
+    let mut rng = rand::thread_rng();
 
     loop {
         let html = String::from_utf8(Command::new("curl").arg("https://bannerweb.oci.emich.edu/pls/banner/bwckschd.p_disp_detail_sched?term_in=202510&crn_in=13153").output().unwrap().stdout).unwrap();
@@ -36,6 +40,6 @@ fn main() {
             alarm_on_loop();
         }
 
-        thread::sleep(Duration::from_secs(60));
+        thread::sleep(Duration::from_secs(rng.gen_range(72..=248)));
     }
 }
