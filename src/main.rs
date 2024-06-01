@@ -24,14 +24,14 @@ fn main() {
     let mut rng = rand::thread_rng();
 
     loop {
-        thread::sleep(Duration::from_secs(rng.gen_range(72..=248)));
-
         let html = String::from_utf8(Command::new("curl").arg("https://bannerweb.oci.emich.edu/pls/banner/bwckschd.p_disp_detail_sched?term_in=202510&crn_in=13153").output().unwrap().stdout).unwrap();
 
         let html_re = regex::Regex::new(r"dddefault").unwrap();
 
         if !html_re.is_match(&html) {
             my_print("Uh oh. We're not getting HTML anymore.");
+            dbg!(html);
+            thread::sleep(Duration::from_secs(rng.gen_range(72..=248)));
             continue;
         }
 
@@ -41,5 +41,7 @@ fn main() {
             my_print("NONTHIRTY, NONZERO VALUE DETECTED!!!!");
             alarm_on_loop();
         }
+
+        thread::sleep(Duration::from_secs(rng.gen_range(72..=248)));
     }
 }
