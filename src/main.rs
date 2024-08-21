@@ -12,9 +12,16 @@ fn main() {
     my_print("Make sure to set your volume unmuted and low!");
     my_print("Let me do my thing");
 
+    let song_path = "/home/penguino/Music/Krystle (URL Cyber Palace Mix) [dVsdh98eapI].m4a";
+
+    assert!(
+        std::path::Path::new(song_path).exists(),
+        "Song file {song_path} does not exist."
+    );
+
     let alarm_on_loop = || loop {
         Command::new("mpv")
-            .arg("/home/penguino/Music/Krystle (URL Cyber Palace Mix) [dVsdh98eapI].m4a")
+            .arg(song_path)
             .stdout(Stdio::null())
             .spawn()
             .unwrap();
@@ -24,7 +31,7 @@ fn main() {
     let mut rng = rand::thread_rng();
 
     loop {
-        let html = String::from_utf8(Command::new("curl").arg("https://bannerweb.oci.emich.edu/pls/banner/bwckschd.p_disp_detail_sched?term_in=202510&crn_in=13153").output().unwrap().stdout).unwrap();
+        let html = String::from_utf8(Command::new("curl").arg("https://bannerweb.oci.emich.edu/pls/banner/bwckschd.p_disp_detail_sched?term_in=202510&crn_in=14313").output().unwrap().stdout).unwrap();
 
         let html_re = regex::Regex::new(r"dddefault").unwrap();
 
