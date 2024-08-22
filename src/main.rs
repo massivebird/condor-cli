@@ -2,11 +2,14 @@ use rand::Rng;
 use std::process::{Command, Stdio};
 use std::thread;
 use std::time::Duration;
+use time::UtcOffset;
 
 fn main() {
     simplelog::TermLogger::init(
         log::LevelFilter::Info,
-        simplelog::Config::default(),
+        simplelog::ConfigBuilder::new()
+            .set_time_offset(UtcOffset::current_local_offset().unwrap())
+            .build(),
         simplelog::TerminalMode::Stdout,
         simplelog::ColorChoice::Always,
     )

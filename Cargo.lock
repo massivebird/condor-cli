@@ -79,6 +79,7 @@ dependencies = [
  "rand",
  "regex",
  "simplelog",
+ "time",
 ]
 
 [[package]]
