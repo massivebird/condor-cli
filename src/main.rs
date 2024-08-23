@@ -25,7 +25,10 @@ fn main() {
         "Song file {song_path} does not exist."
     );
 
-    let crns: Vec<u32> = vec![11264, 11265];
+    let crns: Vec<u32> = vec![
+        11264, // STAT 360
+        11265, // STAT 360
+    ];
 
     let mut crn_iter = crns.iter().cycle();
 
