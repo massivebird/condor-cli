@@ -1,4 +1,5 @@
 use rand::Rng;
+use std::path::Path;
 use std::process::{Command, Stdio};
 use std::thread;
 use std::time::Duration;
@@ -21,7 +22,7 @@ fn main() {
     let song_path = "/home/penguino/Music/Machine Girl/Wlfgrl/03 - Machine Girl - Krystle - URL Cyber Palace Mix.mp3";
 
     assert!(
-        std::path::Path::new(song_path).exists(),
+        Path::new(song_path).exists(),
         "Song file {song_path} does not exist."
     );
 
@@ -54,14 +55,10 @@ fn check_course(crn: u32, song_path: &str) {
 
     let course_catalog_url = format!("https://bannerweb.oci.emich.edu/pls/banner/bwckschd.p_disp_detail_sched?term_in=202510&crn_in={crn}");
 
-    let html = String::from_utf8(
-        Command::new("curl")
-            .arg(course_catalog_url)
-            .output()
-            .unwrap()
-            .stdout,
-    )
-    .unwrap();
+    let html = reqwest::blocking::get(course_catalog_url)
+        .unwrap()
+        .text()
+        .unwrap();
 
     let regex = regex::Regex::new(r#"Seats</SPAN></th>\n<td CLASS=\"dddefault\">(?<cap>\d{1,2})</td>\n<td CLASS=\"dddefault\">(?<actual>\d{1,2})</td>\n<td CLASS=\"dddefault\">(?<remaining>-?\d{1,2})</td>\n</tr>\n<tr>\n<th CLASS=\"ddlabel\" scope=\"row\" ><SPAN class=\"fieldlabeltext\">Waitlist Seats</SPAN></th>\n<td CLASS=\"dddefault\">\d{1,2}</td>\n<td CLASS=\"dddefault\">\d{1,2}</td>\n<td CLASS=\"dddefault\">(?<waitlist_remaining>-?\d{1,2})</td>"#).unwrap();
 
