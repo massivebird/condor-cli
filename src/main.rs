@@ -35,14 +35,14 @@ fn main() {
     loop {
         let crn = crn_iter.next().unwrap();
 
-        check_course(crn, &song_path);
+        check_course(*crn, song_path);
 
         let mut rng = rand::thread_rng();
         thread::sleep(Duration::from_secs(rng.gen_range(30..=72)));
     }
 }
 
-fn check_course(crn: &u32, song_path: &str) {
+fn check_course(crn: u32, song_path: &str) {
     let alarm_on_loop = || loop {
         Command::new("mpv")
             .arg(song_path)
@@ -63,18 +63,32 @@ fn check_course(crn: &u32, song_path: &str) {
     )
     .unwrap();
 
-    let html_re = regex::Regex::new(r"dddefault").unwrap();
+    let regex = regex::Regex::new(r#"Seats</SPAN></th>\n<td CLASS=\"dddefault\">(?<cap>\d{1,2})</td>\n<td CLASS=\"dddefault\">(?<actual>\d{1,2})</td>\n<td CLASS=\"dddefault\">(?<remaining>-?\d{1,2})</td>\n</tr>\n<tr>\n<th CLASS=\"ddlabel\" scope=\"row\" ><SPAN class=\"fieldlabeltext\">Waitlist Seats</SPAN></th>\n<td CLASS=\"dddefault\">\d{1,2}</td>\n<td CLASS=\"dddefault\">\d{1,2}</td>\n<td CLASS=\"dddefault\">(?<waitlist_remaining>-?\d{1,2})</td>"#).unwrap();
 
-    if !html_re.is_match(&html) {
-        log::error!("Uh oh. We're not getting HTML anymore.");
-        dbg!(html);
+    let Some(captures) = regex.captures(&html) else {
+        log::error!("CRN {crn}: unexpected HTML response: failed to generate captures.");
         return;
+    };
+
+    // Attempts to retrieve a named capture. Returns from the function on failure.
+    macro_rules! try_get_capture {
+        ( $x: expr ) => {{
+            let Ok(value) = captures.name($x).unwrap().as_str().parse() else {
+                log::error!(
+                    "CRN {crn}: unexpected HTML response: failed to parse capture to integer."
+                );
+                return;
+            };
+
+            value
+        }};
     }
 
-    let availability_re = regex::Regex::new(r"dddefault.>[^30]{1,2}[0]{0,1}</td>").unwrap();
+    let remaining: i32 = try_get_capture!("remaining");
+    let waitlist_remaining: i32 = try_get_capture!("remaining");
 
-    if availability_re.is_match(&html) {
-        log::warn!("NONTHIRTY, NONZERO VALUE DETECTED FOR COURSE {crn}!!!!");
+    if remaining > 0 || waitlist_remaining > 0 {
+        log::warn!("CRN {crn}: vacancy detected!");
         alarm_on_loop();
     }
 
