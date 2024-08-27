@@ -85,9 +85,9 @@ fn check_course(crn: u32, song_path: &str) {
     let waitlist_remaining: i32 = try_get_capture!("remaining");
 
     if remaining > 0 || waitlist_remaining > 0 {
-        log::warn!("CRN {crn}: vacancy detected!");
+        log::warn!("CRN {crn}: vacancy has been detected!");
         alarm_on_loop();
     }
 
-    log::info!("CRN {crn} analysis clean.");
+    log::info!("CRN {crn}: no vacancy detected.");
 }
