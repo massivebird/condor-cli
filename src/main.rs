@@ -60,7 +60,7 @@ fn check_course(crn: u32, song_path: &str) {
         .text()
         .unwrap();
 
-    let regex = regex::Regex::new(r#"Seats</SPAN></th>\n<td CLASS=\"dddefault\">(?<cap>\d{1,2})</td>\n<td CLASS=\"dddefault\">(?<actual>\d{1,2})</td>\n<td CLASS=\"dddefault\">(?<remaining>-?\d{1,2})</td>\n</tr>\n<tr>\n<th CLASS=\"ddlabel\" scope=\"row\" ><SPAN class=\"fieldlabeltext\">Waitlist Seats</SPAN></th>\n<td CLASS=\"dddefault\">\d{1,2}</td>\n<td CLASS=\"dddefault\">\d{1,2}</td>\n<td CLASS=\"dddefault\">(?<waitlist_remaining>-?\d{1,2})</td>"#).unwrap();
+    let regex = regex::Regex::new(r#"Seats</SPAN></th>\n(<td CLASS=\"dddefault\">(?<cap>\d{1,2})</td>\n){2}<td CLASS=\"dddefault\">(?<remaining>-?\d{1,2})</td>\n</tr>\n<tr>\n<th CLASS=\"ddlabel\" scope=\"row\" ><SPAN class=\"fieldlabeltext\">Waitlist Seats</SPAN></th>\n(<td CLASS=\"dddefault\">\d{1,2}</td>\n){2}<td CLASS=\"dddefault\">(?<waitlist_remaining>-?\d{1,2})</td>"#).unwrap();
 
     let Some(captures) = regex.captures(&html) else {
         log::error!("CRN {crn}: unexpected HTML response: failed to generate captures.");
