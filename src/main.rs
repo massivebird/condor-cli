@@ -1,64 +1,13 @@
-use clap::{command, Arg, ValueHint};
-use playback_rs::{Player, Song};
+use config::Config;
+use playback_rs::Player;
 use rand::Rng;
-use std::path::Path;
 use std::thread;
 use std::time::Duration;
-use time::UtcOffset;
 
-#[derive(Copy, Clone)]
-struct Config {
-    verbose: bool,
-}
+mod config;
 
 fn main() {
-    let matches = command!()
-        .arg(
-            Arg::new("alert")
-                .short('r')
-                .long("alert")
-                .alias("a")
-                .required(true)
-                .help("Path to your alert sound")
-                .value_name("PATH")
-                .value_hint(ValueHint::DirPath),
-        )
-        .arg(
-            Arg::new("verbose")
-                .short('v')
-                .long("verbose")
-                .required(false)
-                .action(clap::ArgAction::SetTrue)
-                .help("Display additional output messages"),
-        )
-        .get_matches();
-
-    simplelog::TermLogger::init(
-        log::LevelFilter::Info,
-        simplelog::ConfigBuilder::new()
-            .set_time_offset(UtcOffset::current_local_offset().unwrap())
-            .build(),
-        simplelog::TerminalMode::Stdout,
-        simplelog::ColorChoice::Always,
-    )
-    .unwrap();
-
-    let get_arg = |arg_name: &str| -> Option<&String> { matches.get_one::<String>(arg_name) };
-
-    let alert_path = get_arg("alert").unwrap();
-
-    let config = Config {
-        verbose: matches.get_flag("verbose"),
-    };
-
-    let Ok(alert) = playback_rs::Song::from_file(alert_path, None) else {
-        panic!("Failed to parse alert file for some reason. Oops! >v<");
-    };
-
-    assert!(
-        Path::new(alert_path).exists(),
-        "Alert file {alert_path} does not exist."
-    );
+    let config = config::generate_config();
 
     let player = playback_rs::Player::new(None).unwrap();
 
@@ -67,23 +16,23 @@ fn main() {
         11265, // STAT 360
     ];
 
-    log::info!("Make sure to set your volume is comfortable!");
+    log::info!("Make sure your volume is comfortable!");
 
     let mut crn_iter = crns.iter().cycle();
 
     loop {
         let crn = crn_iter.next().unwrap();
 
-        check_course(config, *crn, &alert, &player);
+        check_course(config.clone(), *crn, &player);
 
         let mut rng = rand::thread_rng();
         thread::sleep(Duration::from_secs(rng.gen_range(30..=72)));
     }
 }
 
-fn check_course(config: Config, crn: u32, alarm: &Song, player: &Player) {
+fn check_course(config: Config, crn: u32, player: &Player) {
     let alarm_on_loop = || loop {
-        player.play_song_now(alarm, None).unwrap();
+        player.play_song_now(&config.alarm, None).unwrap();
         std::thread::sleep(std::time::Duration::from_secs(240));
     };
 
