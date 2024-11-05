@@ -71,6 +71,6 @@ fn check_course(config: Config, crn: u32, player: &Player) {
     }
 
     if config.verbose {
-        log::info!("CRN {crn}: no vacancy detected.");
+        log::info!("No vacancy detected for {crn}.");
     }
 }
