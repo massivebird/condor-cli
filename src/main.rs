@@ -11,8 +11,6 @@ fn main() {
 
     let player = playback_rs::Player::new(None).unwrap();
 
-    log::info!("Make sure your volume is comfortable!");
-
     let mut crn_iter = config.crns.iter().cycle();
 
     loop {
