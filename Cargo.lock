@@ -245,6 +245,20 @@ dependencies = [
 ]
 
 [[package]]
+name = "condor"
+version = "0.1.0"
+dependencies = [
+ "chrono",
+ "log",
+ "playback-rs",
+ "rand",
+ "regex",
+ "reqwest",
+ "simplelog",
+ "time",
+]
+
+[[package]]
 name = "core-foundation"
 version = "0.9.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -278,20 +292,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "2ce857aa0b77d77287acc1ac3e37a05a8c95a2af3647d23b15f263bdaeb7562b"
 dependencies = [
  "bindgen",
-]
-
-[[package]]
-name = "cosc-availability-checker"
-version = "0.1.0"
-dependencies = [
- "chrono",
- "log",
- "playback-rs",
- "rand",
- "regex",
- "reqwest",
- "simplelog",
- "time",
 ]
 
 [[package]]
