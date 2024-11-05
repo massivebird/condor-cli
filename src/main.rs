@@ -1,3 +1,4 @@
+use clap::{command, Arg, ValueHint};
 use rand::Rng;
 use std::path::Path;
 use std::process::{Command, Stdio};
@@ -6,6 +7,27 @@ use std::time::Duration;
 use time::UtcOffset;
 
 fn main() {
+    let matches = command!()
+        .arg(
+            Arg::new("alert")
+                .short('r')
+                .long("alert")
+                .alias("a")
+                .required(true)
+                .help("Path to your alert sound")
+                .value_name("PATH")
+                .value_hint(ValueHint::DirPath),
+        )
+        .arg(
+            Arg::new("verbose")
+                .short('v')
+                .long("verbose")
+                .required(false)
+                .action(clap::ArgAction::SetTrue)
+                .help("Display additional output messages"),
+        )
+        .get_matches();
+
     simplelog::TermLogger::init(
         log::LevelFilter::Info,
         simplelog::ConfigBuilder::new()
@@ -16,18 +38,17 @@ fn main() {
     )
     .unwrap();
 
-    log::info!("Make sure to set your volume unmuted and low!");
-    log::info!("Let me do my thing");
+    let get_arg = |arg_name: &str| -> Option<&String> { matches.get_one::<String>(arg_name) };
 
-    let song_path = "/home/penguino/Music/Machine Girl/Wlfgrl/03 - Machine Girl - Krystle - URL Cyber Palace Mix.mp3";
+    let alert_path = get_arg("alert").unwrap();
 
-    let Ok(song) = playback_rs::Song::from_file(song_path, None) else {
-        panic!("Failed to detect song at {song_path}");
+    let Ok(alert) = playback_rs::Song::from_file(alert_path, None) else {
+        panic!("Failed to detect song at {alert_path}");
     };
 
     assert!(
-        Path::new(song_path).exists(),
-        "Song file {song_path} does not exist."
+        Path::new(alert_path).exists(),
+        "Alert file {alert_path} does not exist."
     );
 
     let crns: Vec<u32> = vec![
@@ -35,12 +56,15 @@ fn main() {
         11265, // STAT 360
     ];
 
+    log::info!("Make sure to set your volume unmuted and low!");
+    log::info!("Let me do my thing");
+
     let mut crn_iter = crns.iter().cycle();
 
     loop {
         let crn = crn_iter.next().unwrap();
 
-        check_course(*crn, song_path);
+        check_course(*crn, alert_path);
 
         let mut rng = rand::thread_rng();
         thread::sleep(Duration::from_secs(rng.gen_range(30..=72)));
