@@ -1,6 +1,7 @@
 use config::Config;
 use playback_rs::Player;
 use rand::Rng;
+use regex::Regex;
 use std::thread;
 use std::time::Duration;
 
@@ -41,7 +42,7 @@ fn check_course(config: Config, crn: u32, player: &Player) {
         .text()
         .unwrap();
 
-    let regex = regex::Regex::new(r#"Seats</SPAN></th>\n(<td CLASS=\"dddefault\">(?<cap>\d{1,2})</td>\n){2}<td CLASS=\"dddefault\">(?<remaining>-?\d{1,2})</td>\n</tr>\n<tr>\n<th CLASS=\"ddlabel\" scope=\"row\" ><SPAN class=\"fieldlabeltext\">Waitlist Seats</SPAN></th>\n(<td CLASS=\"dddefault\">\d{1,2}</td>\n){2}<td CLASS=\"dddefault\">(?<waitlist_remaining>-?\d{1,2})</td>"#).unwrap();
+    let regex = Regex::new(r#"Seats</SPAN></th>\n(<td CLASS=\"dddefault\">(?<cap>\d{1,2})</td>\n){2}<td CLASS=\"dddefault\">(?<remaining>-?\d{1,2})</td>\n</tr>\n<tr>\n<th CLASS=\"ddlabel\" scope=\"row\" ><SPAN class=\"fieldlabeltext\">Waitlist Seats</SPAN></th>\n(<td CLASS=\"dddefault\">\d{1,2}</td>\n){2}<td CLASS=\"dddefault\">(?<waitlist_remaining>-?\d{1,2})</td>"#).unwrap();
 
     let Some(captures) = regex.captures(&html) else {
         log::error!("Unexpected HTML response for {crn}: failed to generate captures.");

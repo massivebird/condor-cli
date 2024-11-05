@@ -1,7 +1,7 @@
-use std::path::Path;
-
 use clap::{command, Arg, ValueHint};
 use playback_rs::Song;
+use regex::Regex;
+use std::path::Path;
 use time::UtcOffset;
 
 #[derive(Clone)]
@@ -9,13 +9,14 @@ pub struct Config {
     pub verbose: bool,
     pub alarm: Song,
     pub crns: Vec<u32>,
+    pub semester_code: u32,
 }
 
 pub fn generate_config() -> Config {
     let matches = command!()
         .arg(
             Arg::new("alert")
-                .short('r')
+                .short('a')
                 .long("alert")
                 .alias("a")
                 .required(true)
@@ -30,6 +31,14 @@ pub fn generate_config() -> Config {
                 .required(true)
                 .help("Comma-separated CRNs to monitor.")
                 .value_name("CRNs"),
+        )
+        .arg(
+            Arg::new("semester")
+                .short('s')
+                .long("semester")
+                .required(true)
+                .help("Semester name: formatted \"fall2024\" or \"winter2025\"")
+                .value_name("STRING"),
         )
         .arg(
             Arg::new("verbose")
@@ -70,6 +79,35 @@ pub fn generate_config() -> Config {
         })
         .unwrap();
 
+    let semester_code = {
+        let input = matches.get_one::<String>("semester").unwrap();
+        let re = Regex::new(r#"(?<season>fall|winter)(?<year>20\d{2})"#).unwrap();
+
+        let error_msg =
+            "Failed to parse semester: `<fall|winter><year>` expected, such as \"fall2024\".";
+
+        let Some(captures) = re.captures(input) else {
+            log::error!("{}", error_msg);
+            std::process::exit(1);
+        };
+
+        // TODO: a similar macro appears in other files. Dissolve them!
+        macro_rules! try_get_capture {
+            ( $x: expr, $error_msg: expr ) => {{
+                captures.name($x).unwrap().as_str()
+            }};
+        }
+
+        let season = try_get_capture!("season", error_msg);
+        let year = try_get_capture!("year", error_msg).parse::<u32>().unwrap();
+
+        match season {
+            "fall" => todo!(),
+            "winter" => todo!(),
+            _ => unreachable!(),
+        }
+    };
+
     let alert_path = matches.get_one::<String>("alert").unwrap();
 
     let Ok(alert) = playback_rs::Song::from_file(alert_path, None) else {
@@ -85,5 +123,6 @@ pub fn generate_config() -> Config {
         verbose: matches.get_flag("verbose"),
         alarm: alert,
         crns,
+        semester_code,
     }
 }
