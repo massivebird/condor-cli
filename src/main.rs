@@ -35,7 +35,7 @@ fn check_course(config: Config, crn: u32, player: &Player) {
     // Fall 2024    202510
     // Winter 2024  202420
     // Fall 2024    202410
-    let course_catalog_url = format!("https://bannerweb.oci.emich.edu/pls/banner/bwckschd.p_disp_detail_sched?term_in=202510&crn_in={crn}");
+    let course_catalog_url = format!("https://bannerweb.oci.emich.edu/pls/banner/bwckschd.p_disp_detail_sched?term_in={}&crn_in={crn}", config.semester_code);
 
     let html = reqwest::blocking::get(course_catalog_url)
         .unwrap()
