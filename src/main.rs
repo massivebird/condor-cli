@@ -21,6 +21,10 @@ fn main() {
 
     let song_path = "/home/penguino/Music/Machine Girl/Wlfgrl/03 - Machine Girl - Krystle - URL Cyber Palace Mix.mp3";
 
+    let Ok(song) = playback_rs::Song::from_file(song_path, None) else {
+        panic!("Failed to detect song at {song_path}");
+    };
+
     assert!(
         Path::new(song_path).exists(),
         "Song file {song_path} does not exist."
