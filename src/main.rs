@@ -1,10 +1,15 @@
 use clap::{command, Arg, ValueHint};
+use playback_rs::{Player, Song};
 use rand::Rng;
 use std::path::Path;
-use std::process::{Command, Stdio};
 use std::thread;
 use std::time::Duration;
 use time::UtcOffset;
+
+#[derive(Copy, Clone)]
+struct Config {
+    verbose: bool,
+}
 
 fn main() {
     let matches = command!()
@@ -42,8 +47,12 @@ fn main() {
 
     let alert_path = get_arg("alert").unwrap();
 
+    let config = Config {
+        verbose: matches.get_flag("verbose"),
+    };
+
     let Ok(alert) = playback_rs::Song::from_file(alert_path, None) else {
-        panic!("Failed to detect song at {alert_path}");
+        panic!("Failed to parse alert file for some reason. Oops! >v<");
     };
 
     assert!(
@@ -51,33 +60,30 @@ fn main() {
         "Alert file {alert_path} does not exist."
     );
 
+    let player = playback_rs::Player::new(None).unwrap();
+
     let crns: Vec<u32> = vec![
         11264, // STAT 360
         11265, // STAT 360
     ];
 
-    log::info!("Make sure to set your volume unmuted and low!");
-    log::info!("Let me do my thing");
+    log::info!("Make sure to set your volume is comfortable!");
 
     let mut crn_iter = crns.iter().cycle();
 
     loop {
         let crn = crn_iter.next().unwrap();
 
-        check_course(*crn, alert_path);
+        check_course(config, *crn, &alert, &player);
 
         let mut rng = rand::thread_rng();
         thread::sleep(Duration::from_secs(rng.gen_range(30..=72)));
     }
 }
 
-fn check_course(crn: u32, song_path: &str) {
+fn check_course(config: Config, crn: u32, alarm: &Song, player: &Player) {
     let alarm_on_loop = || loop {
-        Command::new("mpv")
-            .arg(song_path)
-            .stdout(Stdio::null())
-            .spawn()
-            .unwrap();
+        player.play_song_now(alarm, None).unwrap();
         std::thread::sleep(std::time::Duration::from_secs(240));
     };
 
@@ -91,7 +97,7 @@ fn check_course(crn: u32, song_path: &str) {
     let regex = regex::Regex::new(r#"Seats</SPAN></th>\n(<td CLASS=\"dddefault\">(?<cap>\d{1,2})</td>\n){2}<td CLASS=\"dddefault\">(?<remaining>-?\d{1,2})</td>\n</tr>\n<tr>\n<th CLASS=\"ddlabel\" scope=\"row\" ><SPAN class=\"fieldlabeltext\">Waitlist Seats</SPAN></th>\n(<td CLASS=\"dddefault\">\d{1,2}</td>\n){2}<td CLASS=\"dddefault\">(?<waitlist_remaining>-?\d{1,2})</td>"#).unwrap();
 
     let Some(captures) = regex.captures(&html) else {
-        log::error!("CRN {crn}: unexpected HTML response: failed to generate captures.");
+        log::error!("Unexpected HTML response for {crn}: failed to generate captures.");
         return;
     };
 
@@ -100,7 +106,7 @@ fn check_course(crn: u32, song_path: &str) {
         ( $x: expr ) => {{
             let Ok(value) = captures.name($x).unwrap().as_str().parse() else {
                 log::error!(
-                    "CRN {crn}: unexpected HTML response: failed to parse capture to integer."
+                    "Unexpected HTML response for {crn}: failed to parse capture to integer."
                 );
                 return;
             };
@@ -113,9 +119,11 @@ fn check_course(crn: u32, song_path: &str) {
     let waitlist_remaining: i32 = try_get_capture!("remaining");
 
     if remaining > 0 || waitlist_remaining > 0 {
-        log::warn!("CRN {crn}: vacancy has been detected!");
+        log::warn!("Detected vacancy for {crn}!");
         alarm_on_loop();
     }
 
-    log::info!("CRN {crn}: no vacancy detected.");
+    if config.verbose {
+        log::info!("CRN {crn}: no vacancy detected.");
+    }
 }
