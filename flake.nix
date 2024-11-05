@@ -1,4 +1,8 @@
 {
+
+  # Nightly Rust setup courtesy of:
+  # https://drakerossman.com/blog/rust-development-on-nixos-bootstrapping-rust-nightly-via-flake
+
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixpkgs-unstable";
     naersk.url = "github:nix-community/naersk/master";
