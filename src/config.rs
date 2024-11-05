@@ -9,7 +9,7 @@ pub struct Config {
     pub verbose: bool,
     pub alarm: Song,
     pub crns: Vec<u32>,
-    pub semester_code: u32,
+    pub semester_code: String,
 }
 
 pub fn generate_config() -> Config {
@@ -102,8 +102,8 @@ pub fn generate_config() -> Config {
         let year = try_get_capture!("year", error_msg).parse::<u32>().unwrap();
 
         match season {
-            "fall" => todo!(),
-            "winter" => todo!(),
+            "fall" => format!("{}10", year + 1),
+            "winter" => format!("{year}20"),
             _ => unreachable!(),
         }
     };
