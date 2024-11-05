@@ -11,14 +11,9 @@ fn main() {
 
     let player = playback_rs::Player::new(None).unwrap();
 
-    let crns: Vec<u32> = vec![
-        11264, // STAT 360
-        11265, // STAT 360
-    ];
-
     log::info!("Make sure your volume is comfortable!");
 
-    let mut crn_iter = crns.iter().cycle();
+    let mut crn_iter = config.crns.iter().cycle();
 
     loop {
         let crn = crn_iter.next().unwrap();
@@ -36,6 +31,11 @@ fn check_course(config: Config, crn: u32, player: &Player) {
         std::thread::sleep(std::time::Duration::from_secs(240));
     };
 
+    // term_in values:
+    // Winter 2025  202520
+    // Fall 2024    202510
+    // Winter 2024  202420
+    // Fall 2024    202410
     let course_catalog_url = format!("https://bannerweb.oci.emich.edu/pls/banner/bwckschd.p_disp_detail_sched?term_in=202510&crn_in={crn}");
 
     let html = reqwest::blocking::get(course_catalog_url)

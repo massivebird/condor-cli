@@ -8,6 +8,7 @@ use time::UtcOffset;
 pub struct Config {
     pub verbose: bool,
     pub alarm: Song,
+    pub crns: Vec<u32>,
 }
 
 pub fn generate_config() -> Config {
@@ -21,6 +22,14 @@ pub fn generate_config() -> Config {
                 .help("Path to your alert sound")
                 .value_name("PATH")
                 .value_hint(ValueHint::DirPath),
+        )
+        .arg(
+            Arg::new("crns")
+                .short('c')
+                .long("crns")
+                .required(true)
+                .help("Comma-separated CRNs to monitor.")
+                .value_name("CRNs"),
         )
         .arg(
             Arg::new("verbose")
@@ -43,6 +52,16 @@ pub fn generate_config() -> Config {
         "Alert file {alert_path} does not exist."
     );
 
+    let crns: Vec<u32> = matches
+        .get_one::<String>("crns")
+        .map(|labels| {
+            labels
+                .split(',')
+                .map(|v| v.parse::<u32>().unwrap())
+                .collect()
+        })
+        .unwrap();
+
     // Oh yeah, we can configure our logger here, too.
     simplelog::TermLogger::init(
         log::LevelFilter::Info,
@@ -57,5 +76,6 @@ pub fn generate_config() -> Config {
     Config {
         verbose: matches.get_flag("verbose"),
         alarm: alert,
+        crns,
     }
 }
