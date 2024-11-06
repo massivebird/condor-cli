@@ -42,7 +42,7 @@ fn check_course(config: Config, crn: u32, player: &Player) {
         .text()
         .unwrap();
 
-    let regex = Regex::new(r#"Seats</SPAN></th>\n(<td CLASS=\"dddefault\">(?<cap>\d{1,2})</td>\n){2}<td CLASS=\"dddefault\">(?<remaining>-?\d{1,2})</td>\n</tr>\n<tr>\n<th CLASS=\"ddlabel\" scope=\"row\" ><SPAN class=\"fieldlabeltext\">Waitlist Seats</SPAN></th>\n(<td CLASS=\"dddefault\">\d{1,2}</td>\n){2}<td CLASS=\"dddefault\">(?<waitlist_remaining>-?\d{1,2})</td>"#).unwrap();
+    let regex = Regex::new(r#"Seats</SPAN></th>\n<td CLASS=\"dddefault\">\d{1,2}</td>\n<td CLASS=\"dddefault\">(?<actual>\d{1,2})</td>\n<td CLASS=\"dddefault\">(?<remaining>-?\d{1,2})</td>\n</tr>\n<tr>\n<th CLASS=\"ddlabel\" scope=\"row\" ><SPAN class=\"fieldlabeltext\">Waitlist Seats</SPAN></th>\n(<td CLASS=\"dddefault\">\d{1,2}</td>\n){2}<td CLASS=\"dddefault\">(?<waitlist_remaining>-?\d{1,2})</td>"#).unwrap();
 
     let Some(captures) = regex.captures(&html) else {
         log::error!("Unexpected HTML response for {crn}: failed to generate captures.");
@@ -63,15 +63,26 @@ fn check_course(config: Config, crn: u32, player: &Player) {
         }};
     }
 
+    // Don't freak out if registration begun for this semester.
+    let actual: i32 = try_get_capture!("actual");
+    if actual == 0 {
+        log::warn!(
+            "Detected zero \"actual\" seats for {crn}. Ignore if registration has not started."
+        );
+        return;
+    }
+
     let remaining: i32 = try_get_capture!("remaining");
-    let waitlist_remaining: i32 = try_get_capture!("remaining");
+    let waitlist_remaining: i32 = try_get_capture!("waitlist_remaining");
 
     if remaining > 0 || waitlist_remaining > 0 {
-        log::warn!("Detected vacancy for {crn}!");
+        log::warn!("Detected vacancy for {crn}! (Rem: {remaining}, WLRem: {waitlist_remaining})");
         alarm_on_loop();
     }
 
     if config.verbose {
-        log::info!("No vacancy detected for {crn}.");
+        log::info!(
+            "No vacancy detected for {crn}. (Rem: {remaining}, WLRem: {waitlist_remaining})"
+        );
     }
 }
