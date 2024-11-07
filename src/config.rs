@@ -1,6 +1,7 @@
 use clap::{command, Arg, ValueHint};
 use playback_rs::Song;
 use regex::Regex;
+use std::fs;
 use std::path::Path;
 use time::UtcOffset;
 
@@ -109,6 +110,18 @@ pub fn generate_config() -> Config {
     };
 
     let alert_path = matches.get_one::<String>("alert").unwrap();
+
+    match fs::exists(alert_path) {
+        Ok(true) => (), // File exists
+        Ok(false) => {
+            log::error!("Alert file does not exist.");
+            std::process::exit(1);
+        }
+        Err(_) => {
+            log::error!("Failed to access alert file. Maybe a permissions issue?");
+            std::process::exit(1);
+        }
+    }
 
     let Ok(alert) = playback_rs::Song::from_file(alert_path, None) else {
         panic!("Failed to parse alert file for some reason. Oops! >v<");
