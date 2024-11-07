@@ -69,7 +69,7 @@ pub fn generate_config() -> Config {
         .get_one::<String>("crns")
         .map(|labels| {
             labels
-                .split(',')
+                .split(&[',', ' '][..])
                 .map(|crn| {
                     crn.parse::<u32>().unwrap_or_else(|_| {
                         log::error!("ERROR: could not parse CRN `{crn}` into an integer.");
