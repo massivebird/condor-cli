@@ -51,7 +51,7 @@ pub fn generate_config() -> Config {
         )
         .get_matches();
 
-    // Oh yeah, we can configure our logger here, too.
+    // Logger configuration. Basically boilerplate
     simplelog::TermLogger::init(
         log::LevelFilter::Info,
         simplelog::ConfigBuilder::new()
