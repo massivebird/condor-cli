@@ -17,24 +17,19 @@ fn main() {
     loop {
         let crn = crn_iter.next().unwrap();
 
-        check_course(config.clone(), *crn, &player);
+        check_course(&config, *crn, &player);
 
         let mut rng = rand::thread_rng();
         thread::sleep(Duration::from_secs(rng.gen_range(30..=72)));
     }
 }
 
-fn check_course(config: Config, crn: u32, player: &Player) {
+fn check_course(config: &Config, crn: u32, player: &Player) {
     let alarm_on_loop = || loop {
         player.play_song_now(&config.alarm, None).unwrap();
         std::thread::sleep(std::time::Duration::from_secs(240));
     };
 
-    // term_in values:
-    // Winter 2025  202520
-    // Fall 2024    202510
-    // Winter 2024  202420
-    // Fall 2024    202410
     let course_catalog_url = format!("https://bannerweb.oci.emich.edu/pls/banner/bwckschd.p_disp_detail_sched?term_in={}&crn_in={crn}", config.semester_code);
 
     let html = reqwest::blocking::get(course_catalog_url)
