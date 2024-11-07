@@ -66,11 +66,6 @@ pub fn generate_config() -> Config {
         panic!("Failed to parse alert file for some reason. Oops! >v<");
     };
 
-    assert!(
-        Path::new(alert_path).exists(),
-        "Alert file {alert_path} does not exist."
-    );
-
     Config {
         verbose: matches.get_flag("verbose"),
         alarm: alert,
