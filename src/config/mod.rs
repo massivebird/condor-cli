@@ -1,7 +1,6 @@
 use playback_rs::Song;
 use regex::Regex;
 use std::{fs, process};
-use std::path::Path;
 use time::UtcOffset;
 
 mod cli;
@@ -78,7 +77,10 @@ fn parse_semester(input: &str) -> String {
     let re = Regex::new(r"(?<season>fall|winter)(?<year>20\d{2})").unwrap();
 
     let Some(captures) = re.captures(input) else {
-        log::error!("{}", "Failed to parse semester: `<fall|winter><year>` expected, such as \"fall2024\".");
+        log::error!(
+            "{}",
+            "Failed to parse semester: `<fall|winter><year>` expected, such as \"fall2024\"."
+        );
         process::exit(1);
     };
 
