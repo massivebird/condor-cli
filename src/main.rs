@@ -58,8 +58,8 @@ fn check_course(config: &Config, crn: u32, player: &Player) {
         }};
     }
 
-    // Don't freak out if registration begun for this semester.
     let actual: i32 = try_get_capture!("actual");
+    // Don't freak out if registration hasn't begun for this semester.
     if actual == 0 {
         log::warn!(
             "Detected zero \"actual\" seats for {crn}. Ignore if registration has not started."
