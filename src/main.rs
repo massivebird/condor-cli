@@ -7,7 +7,8 @@ use std::time::Duration;
 
 mod config;
 
-fn main() {
+#[tokio::main]
+async fn main() {
     let config = config::generate_config();
 
     let player = playback_rs::Player::new(None).unwrap();
@@ -17,21 +18,21 @@ fn main() {
     loop {
         let crn = crn_iter.next().unwrap();
 
-        check_course(&config, *crn, &player);
+        check_course(&config, *crn, &player).await;
 
         let mut rng = rand::thread_rng();
         thread::sleep(Duration::from_secs(rng.gen_range(30..=72)));
     }
 }
 
-fn check_course(config: &Config, crn: u32, player: &Player) {
+async fn check_course(config: &Config, crn: u32, player: &Player) {
     let alarm_on_loop = || loop {
         player.play_song_now(&config.alarm, None).unwrap();
         std::thread::sleep(std::time::Duration::from_secs(240));
     };
 
     let course_status: CourseStatus =
-        match get_course_status(&crn.to_string(), &config.semester_code) {
+        match get_course_status(&crn.to_string(), &config.semester_code).await {
             Ok(v) => v,
             Err(e) => {
                 log::error!("{e}");

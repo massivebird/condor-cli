@@ -1,6 +1,7 @@
 use playback_rs::Song;
 use regex::Regex;
 use std::{fs, process};
+use time::macros::offset;
 use time::UtcOffset;
 
 mod cli;
@@ -20,7 +21,7 @@ pub fn generate_config() -> Config {
     simplelog::TermLogger::init(
         log::LevelFilter::Info,
         simplelog::ConfigBuilder::new()
-            .set_time_offset(UtcOffset::current_local_offset().unwrap())
+            .set_time_offset(UtcOffset::current_local_offset().unwrap_or(offset!(-04:00:00)))
             .build(),
         simplelog::TerminalMode::Stdout,
         simplelog::ColorChoice::Always,

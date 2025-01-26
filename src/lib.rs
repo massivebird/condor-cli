@@ -60,10 +60,13 @@ impl fmt::Display for CaptureGenError {
 
 impl Error for CaptureGenError {}
 
-pub fn get_course_status(crn: &str, semester_code: &str) -> Result<CourseStatus, Box<dyn Error>> {
+pub async fn get_course_status(
+    crn: &str,
+    semester_code: &str,
+) -> Result<CourseStatus, Box<dyn Error>> {
     let catalog_url = format!("https://bannerweb.oci.emich.edu/pls/banner/bwckschd.p_disp_detail_sched?term_in={semester_code}&crn_in={crn}");
 
-    let html = reqwest::blocking::get(catalog_url)?.text()?;
+    let html = reqwest::get(catalog_url).await?.text().await?;
 
     let regex = Regex::new(
         r#"<th CLASS=\"ddlabel\" scope=\"row\" >(?<title>.*) - \d{5} - (?<code>[\w\s\d]+) - \d+<br /><br /></th>"#,
