@@ -1,7 +1,7 @@
+use condor::{get_course_status, CourseStatus};
 use config::Config;
 use playback_rs::Player;
 use rand::Rng;
-use regex::Regex;
 use std::thread;
 use std::time::Duration;
 
@@ -30,54 +30,25 @@ fn check_course(config: &Config, crn: u32, player: &Player) {
         std::thread::sleep(std::time::Duration::from_secs(240));
     };
 
-    let course_catalog_url = format!("https://bannerweb.oci.emich.edu/pls/banner/bwckschd.p_disp_detail_sched?term_in={}&crn_in={crn}", config.semester_code);
-
-    let html = reqwest::blocking::get(course_catalog_url)
-        .unwrap()
-        .text()
-        .unwrap();
-
-    let regex = Regex::new(r#"Seats</SPAN></th>\n<td CLASS=\"dddefault\">\d{1,2}</td>\n<td CLASS=\"dddefault\">(?<actual>\d{1,2})</td>\n<td CLASS=\"dddefault\">(?<remaining>-?\d{1,2})</td>\n</tr>\n<tr>\n<th CLASS=\"ddlabel\" scope=\"row\" ><SPAN class=\"fieldlabeltext\">Waitlist Seats</SPAN></th>\n(<td CLASS=\"dddefault\">\d{1,2}</td>\n){2}<td CLASS=\"dddefault\">(?<waitlist_remaining>-?\d{1,2})</td>"#).unwrap();
-
-    let Some(captures) = regex.captures(&html) else {
-        log::error!("Unexpected HTML response for {crn}: failed to generate captures.");
-        return;
-    };
-
-    // Attempts to retrieve a named capture. Returns from the function on failure.
-    macro_rules! try_get_capture {
-        ( $x: expr ) => {{
-            let Ok(value) = captures.name($x).unwrap().as_str().parse() else {
-                log::error!(
-                    "Unexpected HTML response for {crn}: failed to parse capture to integer."
-                );
+    let course_status: CourseStatus =
+        match get_course_status(&crn.to_string(), &config.semester_code) {
+            Ok(v) => v,
+            Err(e) => {
+                log::error!("{e}");
                 return;
-            };
+            }
+        };
 
-            value
-        }};
-    }
-
-    let actual: i32 = try_get_capture!("actual");
-    // Don't freak out if registration hasn't begun for this semester.
-    if actual == 0 {
+    if course_status.has_open_anything() {
         log::warn!(
-            "Detected zero \"actual\" seats for {crn}. Ignore if registration has not started."
+            "Detected vacancy for {crn}! (Rem: {}, WLRem: {})",
+            course_status.actual_remaining,
+            course_status.waitlist_remaining
         );
-        return;
-    }
-
-    let remaining: i32 = try_get_capture!("remaining");
-    let waitlist_remaining: i32 = try_get_capture!("waitlist_remaining");
-
-    if remaining > 0 || waitlist_remaining > 0 {
-        log::warn!("Detected vacancy for {crn}! (Rem: {remaining}, WLRem: {waitlist_remaining})");
         alarm_on_loop();
     }
 
     if config.verbose {
-        log::info!(
-            "No vacancy detected for {crn}. (Rem: {remaining}, WLRem: {waitlist_remaining})"
-        );
+        log::info!("No vacancy detected for {crn}.");
     }
 }
