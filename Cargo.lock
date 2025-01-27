@@ -339,15 +339,25 @@ version = "0.1.0"
 dependencies = [
  "chrono",
  "clap",
+ "condor 0.1.0 (git+https://github.com/massivebird/condor)",
  "log",
  "playback-rs",
  "rand",
  "regex",
+ "simplelog",
+ "time",
+ "tokio",
+]
+
+[[package]]
+name = "condor"
+version = "0.1.0"
+source = "git+https://github.com/massivebird/condor#c55153c637d7ce7c0b9ec5d46927e17719ab5b3b"
+dependencies = [
+ "regex",
  "reqwest",
  "serde",
  "serde_json",
- "simplelog",
- "time",
  "tokio",
 ]
 
