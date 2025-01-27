@@ -344,6 +344,8 @@ dependencies = [
  "rand",
  "regex",
  "reqwest",
+ "serde",
+ "serde_json",
  "simplelog",
  "time",
  "tokio",

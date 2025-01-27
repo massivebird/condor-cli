@@ -2,9 +2,11 @@
 
 use core::fmt;
 use regex::Regex;
+use serde::{Deserialize, Serialize};
 use std::error::Error;
+use std::io;
 
-#[derive(Debug)]
+#[derive(Debug, Serialize, Deserialize)]
 pub struct CourseStatus {
     pub title: String,
     pub code: String,
@@ -36,6 +38,10 @@ impl CourseStatus {
     #[must_use]
     pub const fn has_open_anything(&self) -> bool {
         self.has_open_seats() || self.has_open_waitlist()
+    }
+
+    pub fn as_json(&self) -> io::Result<String> {
+        Ok(serde_json::to_string(self)?)
     }
 }
 
